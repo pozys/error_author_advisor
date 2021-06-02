@@ -1,9 +1,18 @@
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
+from pydantic.json import pydantic_encoder
+import json
+
+def save_report(report):
+    file = open('report.json', 'w')
+    report_to_json = json.dumps(report, default=pydantic_encoder)
+    # print(report)
+    file.write(report_to_json)
+    file.close()
 
 def df_expanded():
-    df_orig = pd.read_excel('G:\Документы\Работа\conf_storage_history_full.xlsx', parse_dates=['date'])
+    df_orig = pd.read_json('report.json')
 
     enc = preprocessing.OrdinalEncoder()
     df_orig['date'] = enc.fit_transform(df_orig[['date']])
@@ -13,4 +22,4 @@ def df_expanded():
     df_expanded = pd.pivot_table(df_orig, index=['user'], columns=['changed_data'], fill_value=0, aggfunc=np.sum). \
         reset_index() #, values=['distance']
 
-    return df_expanded
+    return df_expanded.head()
