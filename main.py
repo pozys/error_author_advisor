@@ -1,5 +1,5 @@
 from datetime import datetime, date
-import time
+from os import PRIO_PGRP
 from typing import List
 from fastapi import FastAPI, Path, Request
 from fastapi.responses import JSONResponse
@@ -23,8 +23,8 @@ class ErrorAuthorRequest(BaseModel):
 
 app = FastAPI()
 @app.get('/')
-async def get_result():
-     return {"message": "Hello World"}
+async def echo():
+     return {"status": "Ok"}
 
 @app.post('/test', response_class=JSONResponse)
 async def test(metadata: List[str]):     
@@ -48,35 +48,23 @@ async def get_last_storage_version():
 async def get_error_author(request_data: ErrorAuthorRequest):
      if not request_data.metadata:
           return ''
-     t0 = time.time()
-     df_expanded = history_handler.df_expanded(request_data.date)
-     t1 = time.time() - t0
-     print("Time elapsed on df_expanded: ", t1)
 
+     metadata = error_author_handler.get_metadata_from_raw_data(request_data.metadata)
+     
+     df_expanded = history_handler.df_expanded(metadata, request_data.date)
+     print(metadata)  
      if df_expanded is None:
           return ''
-          
-     t0 = time.time()
+     elif len(df_expanded) == 1:
+          return df_expanded.index[0]
+        
      model = mt.trained_model(df_expanded)
-     t1 = time.time() - t0
-     print("Time elapsed on trained_model: ", t1)
-
-     t0 = time.time()
-     metadata = error_author_handler.get_metadata_from_raw_data(request_data.metadata)
-     t1 = time.time() - t0
-     print("Time elapsed on get_metadata_from_raw_data: ", t1)
 
      if not metadata:
           return ''
 
-     t0 = time.time()
      df_test = data_processing.get_test_dataframe(metadata, df_expanded)
-     t1 = time.time() - t0
-     print("Time elapsed on get_test_dataframe: ", t1)
 
-     t0 = time.time()
      result = predictions.error_author_prediction(model, df_test)
-     t1 = time.time() - t0
-     print("Time elapsed on error_author_prediction: ", t1)
 
      return result
