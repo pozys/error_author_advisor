@@ -1,18 +1,17 @@
 import pandas as pd
 from sklearn import preprocessing
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import SVC
 
 def trained_model(df):  
-    df_without_user = df.drop(columns='user')
-    df_normalized = preprocessing.normalize(df_without_user, axis=0)
+    df_normalized = preprocessing.normalize(df, axis=0)
     df_normalized_array = list(df_normalized)
 
-    df_final = pd.DataFrame(df_normalized_array, columns=df_without_user.columns)
-    print(df_final.info())
-    X = df_final
-    y = df['user']
+    df_final = pd.DataFrame(df_normalized_array, columns=list(df.columns))
     
-    clf = MultinomialNB()  
-    clf.fit(X, y)
+    X_train = df_final
+    y_train = df.index
+
+    clf = SVC()  
+    clf.fit(X_train, y_train)
 
     return clf

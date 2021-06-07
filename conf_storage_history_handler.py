@@ -33,10 +33,13 @@ def get_last_storage_version():
    
     return report.iloc[-1]
 
-def df_expanded(date = date.today()):
+def df_expanded(metadata, date = date.today()):
     df_report = df_raw_report()
 
     df_report = df_report[df_report['date'] <= pd.to_datetime(date)]
+    
+    if metadata:
+        df_report = df_report[df_report['changed_data'].isin(metadata)]
 
     if df_report.size == 0:
         return None
@@ -48,6 +51,7 @@ def df_expanded(date = date.today()):
     df_report['distance'] = 1 * df_report['date_coeff']
     df_expanded = pd.pivot_table(df_report, index='user', values='distance', columns='changed_data', fill_value=0, aggfunc=np.sum). \
         reset_index()
+    df_expanded = df_expanded.set_index('user')
 
     return df_expanded
 
