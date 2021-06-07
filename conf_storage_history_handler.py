@@ -46,7 +46,7 @@ def df_expanded(date = date.today()):
     df_report_normalized = preprocessing.normalize(df_report[['date']], axis=0, norm='max')
     df_report['date_coeff'] = df_report_normalized
     df_report['distance'] = 1 * df_report['date_coeff']
-    df_expanded = pd.pivot_table(df_report, index=['user'], columns=['changed_data'], fill_value=0, aggfunc=np.sum). \
+    df_expanded = pd.pivot_table(df_report, index='user', values='distance', columns='changed_data', fill_value=0, aggfunc=np.sum). \
         reset_index()
 
     return df_expanded
