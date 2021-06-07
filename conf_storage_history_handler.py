@@ -6,9 +6,9 @@ from pydantic.json import pydantic_encoder
 import json
 import os
 
+report_path = 'report.json'
+
 def save_report(report):
-    report_path = 'report.json'
-    
     if not(os.path.exists(report_path) and os.path.getsize(report_path) > 0):
         existing_report = []
         file = open(report_path, 'w+')
@@ -25,8 +25,7 @@ def save_report(report):
     file.write(report_to_json)
     file.close()
 
-def get_last_storage_version():
-    report_path = 'report.json'
+def get_last_storage_version():    
     if not(os.path.exists(report_path) and os.path.getsize(report_path) > 0):
         return None
     
@@ -35,19 +34,22 @@ def get_last_storage_version():
     return report.iloc[-1]
 
 def df_expanded(date = date.today()):
-    df_orig = pd.read_json('report.json')
+    df_report = df_raw_report()
 
-    df_orig = df_orig[df_orig['date'] <= pd.to_datetime(date)]
+    df_report = df_report[df_report['date'] <= pd.to_datetime(date)]
 
-    if df_orig.size == 0:
+    if df_report.size == 0:
         return None
 
     enc = preprocessing.OrdinalEncoder()
-    df_orig['date'] = enc.fit_transform(df_orig[['date']])
-    df_orig_normalized = preprocessing.normalize(df_orig[['date']], axis=0, norm='max')
-    df_orig['date_coeff'] = df_orig_normalized
-    df_orig['distance'] = 1 * df_orig['date_coeff']
-    df_expanded = pd.pivot_table(df_orig, index=['user'], columns=['changed_data'], fill_value=0, aggfunc=np.sum). \
+    df_report['date'] = enc.fit_transform(df_report[['date']])
+    df_report_normalized = preprocessing.normalize(df_report[['date']], axis=0, norm='max')
+    df_report['date_coeff'] = df_report_normalized
+    df_report['distance'] = 1 * df_report['date_coeff']
+    df_expanded = pd.pivot_table(df_report, index=['user'], columns=['changed_data'], fill_value=0, aggfunc=np.sum). \
         reset_index()
 
     return df_expanded
+
+def df_raw_report():
+    return pd.read_json(report_path)
