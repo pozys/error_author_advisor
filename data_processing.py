@@ -1,5 +1,4 @@
 import pandas as pd
-import time
 
 def get_test_dataframe(metadata: list, base_df):
     df_test = pd.DataFrame(columns=list(base_df.columns))

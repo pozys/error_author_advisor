@@ -2,40 +2,38 @@ from datetime import date
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
-from pydantic.json import pydantic_encoder
-import json
-import os
+from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
-report_path = 'report.json'
+import models, schemas
+from database import engine
 
-def save_report(report):
-    if not(os.path.exists(report_path) and os.path.getsize(report_path) > 0):
-        existing_report = []
-        file = open(report_path, 'w+')
-    else:
-        file = open(report_path, 'r+')
-        existing_report = json.load(file)
+def save_report(report, db: Session):
+    new_items = []
+
+    for item in report:
+        history_item = models.History(
+            version=item.version, 
+            date=item.date, 
+            user=item.user, 
+            changed_data=item.changed_data
+            )
+
+        new_items.append(history_item)
+
+    if not new_items:
+        return
+        
+    db.add_all(new_items)
+    db.commit()
+
+def get_last_storage_version(db: Session):
+    result = db.query(models.History).order_by(desc(models.History.version)).first()
     
-    for report_item in report:
-        existing_report.append(report_item)
-
-    report_to_json = json.dumps(existing_report, default=pydantic_encoder)
-    file.seek(0)
-    file.truncate()
-    file.write(report_to_json)
-    file.close()
-
-def get_last_storage_version():    
-    if not(os.path.exists(report_path) and os.path.getsize(report_path) > 0):
-        return None
-    
-    report = pd.read_json(report_path)
-   
-    return report.iloc[-1]
+    return result       
 
 def df_expanded(metadata, date = date.today()):
     df_report = df_raw_report()
-
     df_report = df_report[df_report['date'] <= pd.to_datetime(date)]
     
     if metadata:
@@ -56,4 +54,6 @@ def df_expanded(metadata, date = date.today()):
     return df_expanded
 
 def df_raw_report():
-    return pd.read_json(report_path)
+    df_report = pd.read_sql_table(models.History.__tablename__, engine)
+
+    return df_report

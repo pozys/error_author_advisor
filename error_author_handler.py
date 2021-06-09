@@ -1,5 +1,3 @@
-import pandas as pd
-
 import conf_storage_history_handler as history_handler
 
 def get_metadata_from_raw_data(raw_data: list):

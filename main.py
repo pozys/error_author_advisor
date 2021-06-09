@@ -1,8 +1,6 @@
 from datetime import datetime, date
-from os import PRIO_PGRP
 from typing import List
-from fastapi import FastAPI, Path, Request, Depends
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -37,17 +35,18 @@ async def echo():
 
 @app.post('/history_report')
 async def handle_history_report(report: List[schemas.HistoryReportItem], db: Session = Depends(get_db)):
-     database.save_report(report, db)
+     history_handler.save_report(report, db)
 
      return {"status": "Ok"}
 
 @app.get('/history_report/last_version', response_model=schemas.HistoryReportItem)
-async def get_last_storage_version():
-     last_version = history_handler.get_last_storage_version()
+async def get_last_storage_version(db: Session = Depends(get_db)):
+     last_version = history_handler.get_last_storage_version(db)
+     
      if last_version is None:
           last_version = schemas.HistoryReportItem()
      
-     return schemas.HistoryReportItem.parse_obj(last_version)
+     return last_version
 
 @app.post('/error_author')
 async def get_error_author(request_data: ErrorAuthorRequest):
@@ -57,7 +56,7 @@ async def get_error_author(request_data: ErrorAuthorRequest):
      metadata = error_author_handler.get_metadata_from_raw_data(request_data.metadata)
      
      df_expanded = history_handler.df_expanded(metadata, request_data.date)
-     print(metadata)  
+     
      if df_expanded is None:
           return ''
      elif len(df_expanded) == 1:
@@ -73,11 +72,5 @@ async def get_error_author(request_data: ErrorAuthorRequest):
      result = predictions.error_author_prediction(model, df_test)
 
      return result
-
-@app.get('/read_history', response_model=schemas.HistoryReportItem)        
-def read_history(db: Session = Depends(get_db)):
-     uu = database.get_user(db)
-     print(uu.version)
-     return uu
 
 
