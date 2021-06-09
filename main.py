@@ -1,9 +1,10 @@
 from datetime import datetime, date
 from os import PRIO_PGRP
 from typing import List
-from fastapi import FastAPI, Path, Request
+from fastapi import FastAPI, Path, Request, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 import conf_storage_history_handler as history_handler
 import error_author_handler
@@ -11,38 +12,42 @@ import model_training as mt
 import data_processing
 import predictions
 
-class HistoryReportItem(BaseModel):
-     version: int = 0
-     date: datetime = datetime(1, 1, 1)
-     user: str = ''
-     changed_data: str = ''
+import database
+from database import SessionLocal, engine
+import schemas
+
+database.Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
 
 class ErrorAuthorRequest(BaseModel):
      metadata: List[str]
      date: datetime = date.today()
 
-app = FastAPI()
+def get_db():
+    db = SessionLocal()
+    try:
+         yield db
+    finally:
+         db.close()
+
 @app.get('/')
 async def echo():
      return {"status": "Ok"}
 
-@app.post('/test', response_class=JSONResponse)
-async def test(metadata: List[str]):     
-     return error_author_handler.get_metadata_from_raw_data(metadata)
-
 @app.post('/history_report')
-async def handle_history_report(report: List[HistoryReportItem]):
-     history_handler.save_report(report)
+async def handle_history_report(report: List[schemas.HistoryReportItem], db: Session = Depends(get_db)):
+     database.save_report(report, db)
 
      return {"status": "Ok"}
 
-@app.get('/history_report/last_version', response_model=HistoryReportItem)
+@app.get('/history_report/last_version', response_model=schemas.HistoryReportItem)
 async def get_last_storage_version():
      last_version = history_handler.get_last_storage_version()
      if last_version is None:
-          last_version = HistoryReportItem()
+          last_version = schemas.HistoryReportItem()
      
-     return HistoryReportItem.parse_obj(last_version)
+     return schemas.HistoryReportItem.parse_obj(last_version)
 
 @app.post('/error_author')
 async def get_error_author(request_data: ErrorAuthorRequest):
@@ -68,3 +73,11 @@ async def get_error_author(request_data: ErrorAuthorRequest):
      result = predictions.error_author_prediction(model, df_test)
 
      return result
+
+@app.get('/read_history', response_model=schemas.HistoryReportItem)        
+def read_history(db: Session = Depends(get_db)):
+     uu = database.get_user(db)
+     print(uu.version)
+     return uu
+
+
