@@ -42,7 +42,10 @@ def df_expanded(metadata, date = date.today()):
     if df_report.size == 0:
         return None
 
+    df_report = df_report.drop(columns=['id'])
     enc = preprocessing.OrdinalEncoder()
+    
+    df_report['date']  = df_report['date'].dt.date
     df_report['date'] = enc.fit_transform(df_report[['date']])
     df_report_normalized = preprocessing.normalize(df_report[['date']], axis=0, norm='max')
     df_report['date_coeff'] = df_report_normalized
