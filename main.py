@@ -51,6 +51,7 @@ async def get_last_storage_version(db: Session = Depends(get_db)):
 @app.post('/error_author')
 async def get_error_author(request_data: ErrorAuthorRequest):
      if not request_data.metadata:
+          print('not request_data.metadata')
           return ''
 
      metadata = error_author_handler.get_metadata_from_raw_data(request_data.metadata)
@@ -58,6 +59,7 @@ async def get_error_author(request_data: ErrorAuthorRequest):
      df_expanded = history_handler.df_expanded(metadata, request_data.date)
      
      if df_expanded is None:
+          print('df_expanded is None')
           return ''
      elif len(df_expanded) == 1:
           return df_expanded.index[0]
@@ -65,6 +67,7 @@ async def get_error_author(request_data: ErrorAuthorRequest):
      model = mt.trained_model(df_expanded)
 
      if not metadata:
+          print('not metadata')
           return ''
 
      df_test = data_processing.get_test_dataframe(metadata, df_expanded)
