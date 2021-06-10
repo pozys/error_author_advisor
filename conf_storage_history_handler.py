@@ -58,5 +58,5 @@ def df_expanded(metadata, date = date.today()):
 
 def df_raw_report():
     df_report = pd.read_sql_table(models.History.__tablename__, engine)
-    print(engine)
+    print(df_report)
     return df_report
