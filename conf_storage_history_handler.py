@@ -34,6 +34,7 @@ def get_last_storage_version(db: Session):
 
 def df_expanded(metadata, date = date.today()):
     df_report = df_raw_report()
+    print(f'df_expanded: {df_report.size == 0}')
     df_report = df_report[df_report['date'] <= pd.to_datetime(date)]
     
     if metadata:
