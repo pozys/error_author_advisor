@@ -62,14 +62,14 @@ async def get_error_author(request_data: ErrorAuthorRequest):
      elif len(df_expanded) == 1:
           return df_expanded.index[0]
         
-     model = mt.trained_model(df_expanded)
+     estimator = mt.trained_model(df_expanded)
 
      if not metadata:
           return ''
 
      df_test = data_processing.get_test_dataframe(metadata, df_expanded)
 
-     result = predictions.error_author_prediction(model, df_test)
+     result = predictions.error_author_prediction(estimator, df_test)
 
      return result
 
