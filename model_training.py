@@ -1,18 +1,15 @@
 import pandas as pd
-from sklearn import preprocessing
-from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import MinMaxScaler
 
 def trained_model(df):  
-    df_normalized = preprocessing.normalize(df, axis=0)
-    df_normalized_array = list(df_normalized)
-
-    df_final = pd.DataFrame(df_normalized_array, columns=list(df.columns))
+    scaler = MinMaxScaler()
+    df_final = pd.DataFrame(scaler.fit_transform(df), columns=list(df.columns))
     
     X_train = df_final
     y_train = df.index
-    clf = KNeighborsClassifier(n_neighbors=1)
-    # clf = SVC()  
+    feature_count = len(df_final.columns) 
+    clf = KNeighborsClassifier(n_neighbors=feature_count)
     clf.fit(X_train, y_train)
 
     return clf

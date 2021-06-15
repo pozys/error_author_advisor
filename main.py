@@ -14,6 +14,10 @@ import database
 from database import SessionLocal, engine
 import schemas
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 database.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
