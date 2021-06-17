@@ -4,8 +4,9 @@ import numpy as np
 from sklearn import preprocessing
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from functools import lru_cache
 
-import models, schemas
+import models
 from database import engine
 
 def save_report(report, db: Session):
@@ -26,6 +27,8 @@ def save_report(report, db: Session):
         
     db.add_all(new_items)
     db.commit()
+
+    df_raw_report.cache_clear()
 
 def get_last_storage_version(db: Session):
     result = db.query(models.History).order_by(desc(models.History.version)).first()
@@ -56,6 +59,7 @@ def df_expanded(metadata, date = date.today()):
 
     return df_expanded
 
+@lru_cache
 def df_raw_report():
     df_report = pd.read_sql_table(models.History.__tablename__, engine)
     
