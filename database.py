@@ -9,7 +9,7 @@ user = settings('MARIADB_USER')
 psw = settings('MARIADB_PASSWORD')
 database = settings('MARIADB_DATABASE')
 
-engine = create_engine(f"mariadb+pymysql://{user}:{psw}@{server}:3306/{database}")
+engine = create_engine(f"mariadb+pymysql://{user}:{psw}@{server}:3306/{database}", pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
