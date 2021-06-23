@@ -42,8 +42,7 @@ def df_expanded(metadata: list = [], date = date.today()):
     if metadata:
         metadata_unique = set(metadata)
         df_report = df_report[df_report['changed_data'].isin(metadata_unique)]
-        df_report['metadata_index'] = df_report['changed_data']. \
-            apply(lambda item : len(metadata) - 1 - metadata[::-1].index(item))
+        df_report['metadata_index'] = df_report['changed_data'].apply(lambda item : metadata.index(item))
     else:
         df_report = df_report.copy()
         df_report['metadata_index'] = 1
