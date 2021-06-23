@@ -24,7 +24,7 @@ def get_metadata_from_raw_data(raw_data: list):
 
         metadata.append(result['changed_data'].max())     
 
-    return set(metadata)
+    return metadata
 
 def str_to_set_with_index(item: str):
     return set(str(i) + '_' + x for i, x in enumerate(item.split('.')))
