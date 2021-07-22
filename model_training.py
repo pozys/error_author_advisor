@@ -6,7 +6,7 @@ def trained_model(df):
     X_train = df_final
     y_train = df.index
     feature_count = len(df_final.columns) 
-    clf = KNeighborsClassifier(n_neighbors=feature_count)
+    clf = KNeighborsClassifier(n_neighbors=1)
     clf.fit(X_train, y_train)
 
     return clf
